@@ -2,58 +2,75 @@
  * @Description: 
  * @Author: longerQiu
  * @Date: 2019-11-24 13:04:34
- * @LastEditTime: 2019-11-24 13:04:44
+ * @LastEditTime: 2019-11-30 12:05:34
  */
 package structure
 
-func InsertHeap(h *[]int, x int) {
-	hLen := len(*h)
-	halfHeapLen := int(hLen/2)
-	if halfHeapLen > 0 {
-		if x < (*h)[halfHeapLen] {
-			tmp := (*h)[halfHeapLen]
-			(*h)[halfHeapLen] = x
-			x = tmp
-		}
-	}
-
-	*h = append(*h, x)	
-	s := (*h)[0:halfHeapLen]
-	if len(s) > 0 {
-		InsertHeap(&s, (*h)[halfHeapLen])
-	}
+type Heap struct {
+	heap []int
+	children []int
 }
 
-func DeleteHeap(h *[]int) int {
-	hLen := len(*h)
-	var i, child int
-	frist := (*h)[1]
-	lastInt := (*h)[hLen-1]
-	for i = 1; i * 2 < hLen; i = child {
-		child = i * 2
-		if child + 1 < hLen && (*h)[child] > (*h)[child + 1] {
+func NewHeap() *Heap {
+	h := new(Heap)
+	h.heap = append(h.heap, 0)
+	h.children = h.heap
+	return h
+}
+
+func (h *Heap) Insert(x int) {
+	h.heap = append(h.heap, x)
+	size := h.GetSize()
+	halfOffset := int(size/2)
+	j := size-1
+	for i := halfOffset; i >= 1; i = int(i/2) {
+		if h.heap[j] < h.heap[i] {
+			tmep := h.heap[i]
+			h.heap[i] = h.heap[j]
+			h.heap[j] = tmep
+		}
+		j = i
+	} 
+}
+
+func (h *Heap) GetSize() int {
+	return len(h.heap)
+}
+
+func (h *Heap) GetHeap() []int {
+	return h.heap
+}
+
+func (h *Heap) Delete() int {
+	size := h.GetSize()
+	//空时 返回-1
+	if size == 0 {
+		return -1
+	}
+
+	min := h.heap[1]//弹出第一个
+	last := h.heap[size-1] //最后一个
+	child := 0;
+	
+	//判断哪个儿子最小，补上第一个
+	for i := 1; i*2 < size; i = child {
+		child = i *2 
+		if child + 1 < size && h.heap[child] > h.heap[child + 1] {
 			child++
 		}
 
-		if lastInt > (*h)[child] {
-			(*h)[i] = (*h)[child]
-		} else {
-			break
-		}
+		h.heap[i] = h.heap[child]
 	}
-	
-	(*h)[i] = lastInt
-	*h = (*h)[:hLen-1]
 
-	return frist 
+	h.heap[child] = last //把最后一个元素， 放到最后挪动的那个节点
+	h.heap = h.heap[0:size-1] //出堆
+	return min
 }
 
-func SortHeap(h []int) []int {
-	var sort []int
-	l := len(h)
-	for i := 0; i < l-1; i++ {
-		e := DeleteHeap(&h)
-		sort = append(sort, e)
+func (h *Heap) sort() {
+	size := h.GetSize()
+	for i := 1; i < size-1; i++ {
+		min := h.Delete()
+		h.heap = append(h.heap, min)
 	}
-	return sort
-} 
+}
